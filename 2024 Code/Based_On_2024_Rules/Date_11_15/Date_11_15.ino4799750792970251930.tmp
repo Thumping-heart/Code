@@ -1,0 +1,120 @@
+#include <Wire.h>
+#include "gw_grayscale_sensor.h"
+#include "Wheel__1_0.hpp"
+#include <Wire.h>
+#define GW_GRAY_ADDR GW_GRAY_ADDR_DEF // 传感器地址0X4C
+
+//存传感器数据
+bool Sensor_Left_up_Data[9] = {0};//左上方传感器 0
+bool Sensor_Left_down_Data[9] = {0};//左下方传感器 1
+bool Sensor_Right_up_Data[9] = {0};//右上方传感器 2
+bool Sensor_Right_down_Data[9] = {0};//右下方传感器 3
+
+//存放轮子的PWM值
+int SPD_A = 0;
+int SPD_B = 0;
+int SPD_C = 0;
+int SPD_D = 0;
+int SPD_ALL = 50;
+
+void setup()
+{
+  Wire.begin();
+  Serial.begin(115200);
+  while (!Serial);             // Leonardo: wait for serial monitor
+  Init_Wheel();
+}
+
+void loop()
+{
+  Read_Digital_Sensor();
+  Print_Digital_Sensor();
+  
+  MA_SPD(SPD_A+SPD_ALL);
+  MB_SPD(SPD_B+SPD_ALL); 
+  MC_SPD(SPD_C+SPD_ALL);
+  MD_SPD(SPD_D+SPD_ALL);
+}
+
+void 
+
+void Read_Digital_Sensor()//获取传感器的数据
+{
+  uint8_t recv_value = 0;
+  Wire.beginTransmission(0x70);
+  Wire.write(0x01);
+  Wire.endTransmission();
+  Wire.requestFrom(GW_GRAY_ADDR, 1);
+  recv_value = Wire.read();
+  SEP_ALL_BIT8(recv_value, Sensor_Left_up_Data[1], Sensor_Left_up_Data[2], Sensor_Left_up_Data[3], Sensor_Left_up_Data[4],
+                 Sensor_Left_up_Data[5], Sensor_Left_up_Data[6], Sensor_Left_up_Data[7], Sensor_Left_up_Data[8]);
+
+  Wire.beginTransmission(0x70);
+  Wire.write(0x02);
+  Wire.endTransmission();
+  Wire.requestFrom(GW_GRAY_ADDR, 1);
+  recv_value = Wire.read();
+  SEP_ALL_BIT8(recv_value, Sensor_Left_down_Data[1], Sensor_Left_down_Data[2], Sensor_Left_down_Data[3], Sensor_Left_down_Data[4],
+                 Sensor_Left_down_Data[5], Sensor_Left_down_Data[6], Sensor_Left_down_Data[7], Sensor_Left_down_Data[8]);
+
+   Wire.beginTransmission(0x70);
+   Wire.write(0x04);
+   Wire.endTransmission();
+   Wire.requestFrom(GW_GRAY_ADDR_DEF, 1);
+   recv_value = Wire.read();
+   SEP_ALL_BIT8(recv_value, Sensor_Right_up_Data[1], Sensor_Right_up_Data[2], Sensor_Right_up_Data[3], Sensor_Right_up_Data[4],
+                 Sensor_Right_up_Data[5], Sensor_Right_up_Data[6], Sensor_Right_up_Data[7], Sensor_Right_up_Data[8]);
+
+   Wire.beginTransmission(0x70);
+   Wire.write(0x08);
+   Wire.endTransmission();
+   Wire.requestFrom(GW_GRAY_ADDR_DEF, 1);
+   recv_value = Wire.read();
+   SEP_ALL_BIT8(recv_value, Sensor_Right_down_Data[1], Sensor_Right_down_Data[2], Sensor_Right_down_Data[3], Sensor_Right_down_Data[4],
+                 Sensor_Right_down_Data[5], Sensor_Right_down_Data[6], Sensor_Right_down_Data[7], Sensor_Right_down_Data[8]);
+}
+
+void Print_Digital_Sensor()//串口打印传感器的数据
+{
+   Serial.print("Data_0:");
+   for (int i = 1; i <= 8; ++i) {  //探头从1开始,不是0
+     Serial.print(" ");
+     Serial.print(Sensor_Left_up_Data[i]);
+   }
+   
+   Serial.print("Data_1:");
+   for (int i = 1; i <= 8; ++i) {  
+     Serial.print(" ");
+     Serial.print(Sensor_Left_down_Data[i]);
+   }
+   
+   Serial.print("Data_2:");
+   for (int i = 1; i <= 8; ++i) {  
+     Serial.print(" ");
+     Serial.print(Sensor_Right_up_Data[i]);
+   }
+
+   Serial.print("Data_3:");
+   for (int i = 1; i <= 8; ++i) {  
+     Serial.print(" ");
+     Serial.print(Sensor_Right_down_Data[i]);
+   }
+
+   Serial.print("\n");
+}
+
+void Init_Wheel()//轮子初始化部分
+{
+  pinMode(MA_EN, OUTPUT);
+  pinMode(MA_FWD, OUTPUT);
+  pinMode(MA_REV, OUTPUT);
+  pinMode(MB_EN, OUTPUT);
+  pinMode(MB_FWD, OUTPUT);
+  pinMode(MB_REV, OUTPUT);
+  pinMode(MC_EN, OUTPUT);
+  pinMode(MC_FWD, OUTPUT);
+  pinMode(MC_REV, OUTPUT);
+  pinMode(MD_EN, OUTPUT);
+  pinMode(MD_FWD, OUTPUT);
+  pinMode(MD_REV, OUTPUT);
+}
